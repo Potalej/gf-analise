@@ -1,0 +1,41 @@
+SINOPSE:
+  # python main.py [--help|-h]
+  # python main.py [OPCOES] [ARQUIVO]
+   
+OPCOES:
+  -h, --help
+        Exibe a ajuda.
+
+  (-vi, --valores-iniciais) <opcoes> [arquivo]
+        Le um arquivo de valores iniciais e faz alguma coisa
+  
+  (-ds, --dados-simulacoes) <arg> <opcoes> [arquivo]
+        Le um arquivo de dados de uma simulacao e faz alguma coisa.
+        O "step" de leitura por padrao eh de 1 em 1, mas pode ser
+        alterado passando um inteiro positivo no lugar de <arg>.
+
+OPCOES SECUNDARIAS:
+  (-e2d, --exibir-2d) <args> <opcoes>
+        Para exibir pontos ou trajetorias em 2d. Informe os 
+        dois eixos desejados separados por virgula: "01", 
+        "02" ou "12" (ou permutacoes).
+
+  (-e3d, --exibir-3d)
+        Para exibir pontos ou trajetorias em 3d.
+
+  (-s2d, --salvar-2d)
+        Para salvar trajetorias em 2d.
+  
+  (-m, --motor) [valor]
+        Para escolher o motor da animacao. No caso 2d, por
+        padrao eh o "pygame". No caso 3d, eh o "matplotlib".
+
+DETALHES:
+  - Exibicao com PyGame
+        Ao exibir orbitas com o PyGame, ha acoes via mouse e
+        teclado disponiveis:
+        * d: exibe debug;
+        * f: atualiza taxa de frames por segundo;
+        * scroll: zoom-in e zoom-out
+        * setas: movimentacao
+        * w/s: aumenta/diminui densidade dos pontos

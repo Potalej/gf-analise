@@ -1,0 +1,231 @@
+"""
+Visualizacao de informacoes em graficos com pygame
+
+Objetivos:
+  Funcoes para visualizar graficos atraves do pygame.
+
+Modificado:
+  09 de julho de 2024
+
+Autoria:
+  oap
+"""
+
+__all__     = ["exibir_trajetorias_2d"]
+__version__ = "20240709"
+__author__  = "oap"
+
+import pygame
+from src.arquivos.ler import ler_dados_simulacao
+from config.config_pygame import *
+
+
+##############################################################################
+# > FUNCOES PRINCIPAIS
+##############################################################################
+
+def exibir_trajetorias_2d (corpos:list, eixo_x:int=0, eixo_y:int=1)->None:
+  """Plot de trajetorias 2d dada uma lista de corpos (dicts)."""
+  massas, posicoes = [], []
+  for corpo in corpos:
+    massas.append(corpo["massa"])
+    posicoes.append(corpo["posicoes"])
+  maior_massa = max(massas)
+  massas_relativas = [massa/maior_massa for massa in massas]
+  exibir_evolucao_2d(massas_relativas, posicoes)
+
+
+##############################################################################
+# > FUNCOES AUXILIARES
+##############################################################################
+
+def criar_tela ():
+  global LARGURA, ALTURA, ESCALA
+  tela = pygame.display.set_mode((LARGURA, ALTURA))
+  superficie = pygame.Surface((LARGURA*ESCALA, ALTURA*ESCALA))
+  pygame.display.set_caption("gf-analise")
+  pygame.init()
+  
+  # Para debug
+  texto_debug = pygame.font.SysFont(FONTE, TAMANHO_FONTE)
+  
+  return tela, superficie, texto_debug
+
+def aplicar_zoom (qntd:int)->None:
+  """Aplica zoom na tela."""
+  global ZOOM, TAXA_ZOOM, DENSIDADE
+  if ZOOM + TAXA_ZOOM * (qntd + 1) > 0:
+    ZOOM += TAXA_ZOOM * (qntd + 1)
+    NOVA_DENSIDADE = DENSIDADE - (qntd+1) * TAXA_DENSIDADE
+    if round(NOVA_DENSIDADE,3) > 0:
+      DENSIDADE = NOVA_DENSIDADE
+
+def aplicar_movimentacao (evento_chave:int)->None:
+  """Aplica movimentacao da tela."""
+  global MOV_X, MOV_Y
+  if evento_chave == pygame.K_LEFT:
+    MOV_X -= 1
+  elif evento_chave == pygame.K_RIGHT:
+    MOV_X += 1
+  elif evento_chave == pygame.K_UP:
+    MOV_Y -= 1
+  elif evento_chave == pygame.K_DOWN:
+    MOV_Y += 1
+
+def aplicar_densidade (evento_chave:int)->None:
+  """Aplica alteracao na densidade."""
+  global DENSIDADE, TAXA_DENSIDADE
+  if evento_chave == pygame.K_w:
+    DENSIDADE += TAXA_DENSIDADE
+  elif evento_chave == pygame.K_s:
+    if round(DENSIDADE - TAXA_DENSIDADE,3) > 0:
+      DENSIDADE -= TAXA_DENSIDADE
+
+def aplicar_fps ()->None:
+  """Aplica alteracao na quantidade de FPS."""
+  global FPS
+  if   FPS == 24:  FPS = 30
+  elif FPS == 30:  FPS = 60
+  elif FPS == 60:  FPS = 120
+  elif FPS == 120: FPS = 24
+
+def controle_eventos (eventos:list)->None:
+  """Dada uma lista de eventos de interacao (input), faz a acao devida."""
+  for evento in eventos:
+    # Sair
+    if evento.type in [pygame.QUIT, pygame.K_ESCAPE]:
+      return 1
+      
+    # Zoom (rodinha do mouse)
+    elif evento.type == pygame.MOUSEWHEEL:
+      aplicar_zoom(evento.y)
+    
+    elif evento.type == pygame.KEYDOWN:
+
+      # Movimentacao na tela (setinhas)
+      if evento.key in [pygame.K_LEFT, pygame.K_RIGHT, 
+                        pygame.K_UP, pygame.K_DOWN]:
+        aplicar_movimentacao(evento.key)
+
+      # Para reiniciar a exibicao
+      elif evento.key == pygame.K_BACKSPACE:
+        return 2
+
+      # Para exibir o debug
+      elif evento.key == pygame.K_d:
+        return 3
+
+      # Para pausar ou despausar
+      elif evento.key == pygame.K_SPACE:
+        return 4
+      
+      # Para alterar a densidade
+      elif evento.key in [pygame.K_w, pygame.K_s]:
+        aplicar_densidade(evento.key)
+
+      # Para alterar a taxa de atualizacao
+      elif evento.key == pygame.K_f:
+        aplicar_fps()
+    
+def adaptacao_coordenadas (x:float, y:float)->list:
+  """Adapta coordenadas cartesianas para o pygame."""
+  global ESCALA, LARGURA, ALTURA, ZOOM
+  novo_x = (x * ZOOM + ESCALA * LARGURA / 2) + MOV_X * FATOR_MOV_X
+  novo_y = (y * ZOOM + ESCALA * LARGURA / 2) + MOV_Y * FATOR_MOV_Y
+  return novo_x, novo_y
+
+def desenhar_2d (superficie, t:int, massas:list, posicoes:list)->None:
+  """Dada uma lista de massas e posicoes, desenha os pontos."""
+  global COR_PONTO, DENSIDADE
+  for corpo, posicao in enumerate(posicoes):
+    x,y,_ = posicao[t]
+    x,y   = adaptacao_coordenadas(x,y)
+    massa = massas[corpo]
+    pygame.draw.circle(
+      superficie, COR_PONTO, (x,y), massa / DENSIDADE
+    )
+
+def exibir_debug (tela, texto_debug, fps:float)->None:
+  """Para exibicao de informacoes de desenvolvimento (debug)."""
+  global DEBUG_POSICAO, TELA_COR_TEXTO, TAMANHO_FONTE
+  
+  strings_debug =  []
+  strings_debug += [f"FPS: {round(fps, 2)}"]
+  strings_debug += [f"D: {round(DENSIDADE,2)}"]
+  strings_debug += [f"X: {MOV_X}"]
+  strings_debug += [f"Y: {MOV_Y}"]
+  strings_debug += [f"z: {ZOOM}"]
+
+  for i, string in enumerate(strings_debug):
+    tela.blit(
+      texto_debug.render(string, True, TELA_COR_TEXTO),
+      [DEBUG_POSICAO[0], DEBUG_POSICAO[1] + i*(TAMANHO_FONTE + 2)]
+    ) 
+
+def exibir_evolucao_2d (massas:list, posicoes:list)->None:
+  """Exibicao de evolucao de trajetorias em 2d."""
+  global FPS
+
+  # Cria uma tela
+  tela, superficie, texto_debug  = criar_tela()
+  clock = pygame.time.Clock()
+
+  # Contador para exibicao dos frames
+  i = 0
+  tamanho_maximo_contador = len(posicoes[0]) - 1
+  estatico = (len(posicoes[0]) == 1)
+
+  # Para controlar a atualizacao da exibicao
+  exibir = True
+
+  # Para exibicao de informacoes de dev (debug)
+  debug = False
+
+  while True:
+    # Fixa a quantidade maxima de frames por segundo
+    clock.tick(FPS)
+
+    # Controle de eventos
+    acao = controle_eventos(pygame.event.get())
+    
+    # Sair
+    if acao == 1: 
+      break
+    # Acao de exibir ou nao
+    if acao == 2:
+      exibir = True
+      i = 0
+    # Acao de ativar ou desativar debug
+    elif acao == 3:
+      debug = not debug
+    # Acao de pausar
+    elif acao == 4:
+      if i != tamanho_maximo_contador:
+        exibir = not exibir
+
+    # Cor do fundo / limpa
+    superficie.fill(TELA_COR_FUNDO)
+    
+    # Exibicao
+    desenhar_2d(superficie, i, massas, posicoes)
+
+    # Adaptacoes
+    tela_redimensionada = pygame.transform.smoothscale(superficie, tela.get_size())
+    tela.blit(tela_redimensionada, (0,0))
+    pygame.display.flip() # Giro da tela (de ponta cabeca)
+
+    # Exibicao de debug
+    if debug:
+      exibir_debug(tela, texto_debug, clock.get_fps())
+
+    # Atualiza a tela
+    pygame.display.update()
+
+    if exibir and not estatico:
+      i += 1
+
+    if i == tamanho_maximo_contador:
+      exibir = False
+  
+  # Encerra
+  pygame.quit()

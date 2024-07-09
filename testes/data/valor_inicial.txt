@@ -1,0 +1,29 @@
+! Configs
+modo vi
+nome "Lemniscata"
+integrador verlet
+timestep   0.01
+passos_antes_salvar 1
+t0    0.0
+tf    100.0
+corretor F
+colisoes F
+
+! Valores do problema
+N 3
+G 1.0
+
+! Massas
+1.0
+1.0
+1.0
+
+! Posicoes
+-0.97000436,  0.24308753, 0.0
+ 0.0,         0.0,        0.0
+ 0.97000436, -0.24308753, 0.0
+
+! Momentos
+ 0.4662036850, 0.4323657300, 0,
+-0.93240737,  -0.86473146,   0,
+ 0.4662036850, 0.4323657300, 0
