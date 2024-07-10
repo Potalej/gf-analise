@@ -1,6 +1,11 @@
 # 🪐gf-analise🎲
 Para análise dos dados dos gravidade-fortran!
 
+Para instalar
+```
+pip install -r requirements.txt
+```
+
 ## 📌 Objetivos
 - [X] Leitura dos arquivos de saída dos GFs:
   - [X] Valores iniciais;
