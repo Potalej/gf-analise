@@ -6,14 +6,14 @@ Objetivos:
   iniciais e os de dados gerados por simulacoes atraves dos GFs.
 
 Modificado:
-  09 de julho de 2024
+  10 de julho de 2024
 
 Autoria:
   oap
 """
 
 __all__     = ["ler_valores_iniciais", "ler_dados_simulacao"]
-__version__ = "20240709"
+__version__ = "20240710"
 __author__  = "oap"
 
 from numpy import array
@@ -202,8 +202,8 @@ def ler_dados_simulacao (arquivo_dir : str, qnt_em_qnt : int = 1)->dict:
         R = list(zip(*R))
         P = list(zip(*P))
         for corpo in range(N):
-          infos["corpos"][corpo]["posicoes"].append(R[corpo])
-          infos["corpos"][corpo]["momentos"].append(P[corpo])
+          infos["corpos"][corpo]["posicoes"].append(array(R[corpo]))
+          infos["corpos"][corpo]["momentos"].append(array(P[corpo]))
       except:
         break
 

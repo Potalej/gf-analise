@@ -5,14 +5,14 @@ Objetivos:
   Funcoes para visualizar graficos atraves do pygame.
 
 Modificado:
-  09 de julho de 2024
+  10 de julho de 2024
 
 Autoria:
   oap
 """
 
 __all__     = ["exibir_trajetorias_2d"]
-__version__ = "20240709"
+__version__ = "20240710"
 __author__  = "oap"
 
 import pygame
@@ -24,15 +24,16 @@ from config.config_pygame import *
 # > FUNCOES PRINCIPAIS
 ##############################################################################
 
-def exibir_trajetorias_2d (corpos:list, eixo_x:int=0, eixo_y:int=1)->None:
+def exibir_trajetorias_2d (infos:dict, eixo_x:int=0, eixo_y:int=1)->None:
   """Plot de trajetorias 2d dada uma lista de corpos (dicts)."""
+  corpos = infos["corpos"]
   massas, posicoes = [], []
   for corpo in corpos:
     massas.append(corpo["massa"])
     posicoes.append(corpo["posicoes"])
   maior_massa = max(massas)
   massas_relativas = [massa/maior_massa for massa in massas]
-  exibir_evolucao_2d(massas_relativas, posicoes)
+  exibir_evolucao_2d(massas_relativas, posicoes, infos)
 
 
 ##############################################################################
@@ -53,12 +54,8 @@ def criar_tela ():
 
 def aplicar_zoom (qntd:int)->None:
   """Aplica zoom na tela."""
-  global ZOOM, TAXA_ZOOM, DENSIDADE
-  if ZOOM + TAXA_ZOOM * (qntd + 1) > 0:
-    ZOOM += TAXA_ZOOM * (qntd + 1)
-    NOVA_DENSIDADE = DENSIDADE - (qntd+1) * TAXA_DENSIDADE
-    if round(NOVA_DENSIDADE,3) > 0:
-      DENSIDADE = NOVA_DENSIDADE
+  global ZOOM, TAXA_ZOOM
+  ZOOM += TAXA_ZOOM * qntd
 
 def aplicar_movimentacao (evento_chave:int)->None:
   """Aplica movimentacao da tela."""
@@ -130,8 +127,9 @@ def controle_eventos (eventos:list)->None:
 def adaptacao_coordenadas (x:float, y:float)->list:
   """Adapta coordenadas cartesianas para o pygame."""
   global ESCALA, LARGURA, ALTURA, ZOOM
-  novo_x = (x * ZOOM + ESCALA * LARGURA / 2) + MOV_X * FATOR_MOV_X
-  novo_y = (y * ZOOM + ESCALA * LARGURA / 2) + MOV_Y * FATOR_MOV_Y
+
+  novo_x = (x * (2**ZOOM) + ESCALA * LARGURA / 2) + MOV_X * FATOR_MOV_X
+  novo_y = (y * (2**ZOOM) + ESCALA * LARGURA / 2) + MOV_Y * FATOR_MOV_Y
   return novo_x, novo_y
 
 def desenhar_2d (superficie, t:int, massas:list, posicoes:list)->None:
@@ -145,7 +143,7 @@ def desenhar_2d (superficie, t:int, massas:list, posicoes:list)->None:
       superficie, COR_PONTO, (x,y), massa / DENSIDADE
     )
 
-def exibir_debug (tela, texto_debug, fps:float)->None:
+def exibir_debug (tela, texto_debug, fps:float, infos:dict, i:int)->None:
   """Para exibicao de informacoes de desenvolvimento (debug)."""
   global DEBUG_POSICAO, TELA_COR_TEXTO, TAMANHO_FONTE
   
@@ -154,7 +152,7 @@ def exibir_debug (tela, texto_debug, fps:float)->None:
   strings_debug += [f"D: {round(DENSIDADE,2)}"]
   strings_debug += [f"X: {MOV_X}"]
   strings_debug += [f"Y: {MOV_Y}"]
-  strings_debug += [f"z: {ZOOM}"]
+  strings_debug += [f"z: {2**ZOOM:.2e}"]
 
   for i, string in enumerate(strings_debug):
     tela.blit(
@@ -162,12 +160,12 @@ def exibir_debug (tela, texto_debug, fps:float)->None:
       [DEBUG_POSICAO[0], DEBUG_POSICAO[1] + i*(TAMANHO_FONTE + 2)]
     ) 
 
-def exibir_evolucao_2d (massas:list, posicoes:list)->None:
+def exibir_evolucao_2d (massas_rel:list, posicoes:list, infos:dict)->None:
   """Exibicao de evolucao de trajetorias em 2d."""
   global FPS
 
   # Cria uma tela
-  tela, superficie, texto_debug  = criar_tela()
+  tela, superficie, texto_debug = criar_tela()
   clock = pygame.time.Clock()
 
   # Contador para exibicao dos frames
@@ -207,7 +205,7 @@ def exibir_evolucao_2d (massas:list, posicoes:list)->None:
     superficie.fill(TELA_COR_FUNDO)
     
     # Exibicao
-    desenhar_2d(superficie, i, massas, posicoes)
+    desenhar_2d(superficie, i, massas_rel, posicoes)
 
     # Adaptacoes
     tela_redimensionada = pygame.transform.smoothscale(superficie, tela.get_size())
@@ -216,7 +214,7 @@ def exibir_evolucao_2d (massas:list, posicoes:list)->None:
 
     # Exibicao de debug
     if debug:
-      exibir_debug(tela, texto_debug, clock.get_fps())
+      exibir_debug(tela, texto_debug, clock.get_fps(), infos, i)
 
     # Atualiza a tela
     pygame.display.update()

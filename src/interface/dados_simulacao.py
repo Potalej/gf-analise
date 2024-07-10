@@ -6,13 +6,13 @@ Objetivos:
   simulacoes.
 
 Modificado:
-  09 de julho de 2024
+  10 de julho de 2024
 
 Autoria:
   oap
 """
 
-__version__ = "20240709"
+__version__ = "20240710"
 __author__  = "oap"
 
 from src.interface import auxiliares, saida
@@ -41,7 +41,7 @@ def dados_simulacao (argumentos:list)->None:
     motor = auxiliares.escolha_motor(argumentos, "ds_2d")
     
     # Roda
-    motor(infos["corpos"], int(eixo_x), int(eixo_y))
+    motor(infos, int(eixo_x), int(eixo_y))
 
   # Verifica se quer exibir em 3d
   elif auxiliares.verifica_argumentos(argumentos, PARAMS["E3D"]):

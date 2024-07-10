@@ -5,13 +5,13 @@ Objetivos:
   Funcoes para visualizar graficos atraves do matplotlib.
 
 Modificado:
-  09 de julho de 2024
+  10 de julho de 2024
 
 Autoria:
   oap
 """
 
-__version__ = "20240709"
+__version__ = "20240710"
 __author__  = "oap"
 
 import matplotlib.pyplot as plt
@@ -24,9 +24,9 @@ from numpy import arange
 import src.interface.saida as saida
 from config.config_matplotlib import *
 
-def exibir_trajetorias_2d (corpos:list, eixo_x:int=0, eixo_y:int=1)->None:
+def exibir_trajetorias_2d (infos:dict, eixo_x:int=0, eixo_y:int=1)->None:
   """Plot de trajetorias 2d dada uma lista de corpos (dicts)."""
-  for corpo in corpos:
+  for corpo in infos["corpos"]:
     posicoes = list(zip(*corpo["posicoes"]))
     x, y = posicoes[eixo_x], posicoes[eixo_y]
     plt.scatter(x[-1],y[-1])
