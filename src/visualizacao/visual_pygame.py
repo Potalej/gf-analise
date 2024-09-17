@@ -84,7 +84,9 @@ def aplicar_fps ()->None:
   if   FPS == 24:  FPS = 30
   elif FPS == 30:  FPS = 60
   elif FPS == 60:  FPS = 120
-  elif FPS == 120: FPS = 24
+  elif FPS == 120:  FPS = 240
+  elif FPS == 240:  FPS = 480
+  elif FPS == 480: FPS = 24
 
 def controle_eventos (eventos:list)->None:
   """Dada uma lista de eventos de interacao (input), faz a acao devida."""
