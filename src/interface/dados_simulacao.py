@@ -12,7 +12,7 @@ Autoria:
   oap
 """
 
-__version__ = "20240710"
+__version__ = "20241111"
 __author__  = "oap"
 
 from src.interface import auxiliares, saida

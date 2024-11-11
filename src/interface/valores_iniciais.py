@@ -42,7 +42,7 @@ def valores_iniciais (argumentos:list)->None:
   elif auxiliares.verifica_argumentos(argumentos, PARAMS["E3D"]):
     
     # Captura o motor escolhido para visualizacao
-    motor = auxiliares.escolha_motor(argumentos, "vi_2d")
+    motor = auxiliares.escolha_motor(argumentos, "vi_3d")
     
     # Roda
     motor(infos["corpos"])

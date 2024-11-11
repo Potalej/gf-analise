@@ -31,4 +31,5 @@ FPS           = 60        # Taxa de atualizacao de quadros
 TELA_COR_FUNDO = (0,0,0)  # Cor do fundo da tela
 TELA_COR_TEXTO = (255,255,255) # Cor do texto
 COR_PONTO     = (150, 150, 255) # Cor dos pontos (roxo)
-DEBUG_POSICAO = (10,0) # Posicao das infos do debug na tela
+DEBUG_POSICAO = (10,0)    # Posicao das infos do debug na tela
+EXIBIR_VETORES = False    # Exibicao de vetores de velocidade

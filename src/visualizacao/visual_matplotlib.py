@@ -11,7 +11,7 @@ Autoria:
   oap
 """
 
-__version__ = "20240710"
+__version__ = "20241111"
 __author__  = "oap"
 
 import matplotlib.pyplot as plt
@@ -29,8 +29,8 @@ def exibir_trajetorias_2d (infos:dict, eixo_x:int=0, eixo_y:int=1)->None:
   for corpo in infos["corpos"]:
     posicoes = list(zip(*corpo["posicoes"]))
     x, y = posicoes[eixo_x], posicoes[eixo_y]
-    plt.scatter(x[-1],y[-1])
-    plt.plot(x,y)
+    plt.scatter(x[0],y[0])
+    plt.plot(x[:400],y[:400])
   plt.show()
 
 def exibir_trajetorias_3d (corpos:list)->None:

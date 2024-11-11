@@ -12,13 +12,14 @@ Autoria:
 """
 
 __all__     = ["exibir_trajetorias_2d"]
-__version__ = "20240710"
+__version__ = "20241111"
 __author__  = "oap"
 
 import pygame
 from src.arquivos.ler import ler_dados_simulacao
 from config.config_pygame import *
-
+from src.visualizacao.seta import draw_arrow
+from numpy.linalg import norm
 
 ##############################################################################
 # > FUNCOES PRINCIPAIS
@@ -27,13 +28,14 @@ from config.config_pygame import *
 def exibir_trajetorias_2d (infos:dict, eixo_x:int=0, eixo_y:int=1)->None:
   """Plot de trajetorias 2d dada uma lista de corpos (dicts)."""
   corpos = infos["corpos"]
-  massas, posicoes = [], []
+  massas, posicoes, momentos = [], [], []
   for corpo in corpos:
     massas.append(corpo["massa"])
     posicoes.append(corpo["posicoes"])
+    momentos.append(corpo["momentos"])
   maior_massa = max(massas)
   massas_relativas = [massa/maior_massa for massa in massas]
-  exibir_evolucao_2d(massas_relativas, posicoes, infos)
+  exibir_evolucao_2d(massas_relativas, posicoes, momentos, infos)
 
 
 ##############################################################################
@@ -88,6 +90,10 @@ def aplicar_fps ()->None:
   elif FPS == 240:  FPS = 480
   elif FPS == 480: FPS = 24
 
+def exibir_vetores ()->None:
+  global EXIBIR_VETORES
+  EXIBIR_VETORES = not EXIBIR_VETORES
+
 def controle_eventos (eventos:list)->None:
   """Dada uma lista de eventos de interacao (input), faz a acao devida."""
   for evento in eventos:
@@ -125,6 +131,10 @@ def controle_eventos (eventos:list)->None:
       # Para alterar a taxa de atualizacao
       elif evento.key == pygame.K_f:
         aplicar_fps()
+
+      # Para exibir ou nao os vetores
+      elif evento.key == pygame.K_v:
+        exibir_vetores()
     
 def adaptacao_coordenadas (x:float, y:float)->list:
   """Adapta coordenadas cartesianas para o pygame."""
@@ -134,9 +144,9 @@ def adaptacao_coordenadas (x:float, y:float)->list:
   novo_y = (y * (2**ZOOM) + ESCALA * LARGURA / 2) + MOV_Y * FATOR_MOV_Y
   return novo_x, novo_y
 
-def desenhar_2d (superficie, t:int, massas:list, posicoes:list)->None:
+def desenhar_2d (superficie, t:int, massas:list, posicoes:list, momentos:list)->None:
   """Dada uma lista de massas e posicoes, desenha os pontos."""
-  global COR_PONTO, DENSIDADE
+  global COR_PONTO, DENSIDADE, EXIBIR_VETORES
   for corpo, posicao in enumerate(posicoes):
     x,y,_ = posicao[t]
     x,y   = adaptacao_coordenadas(x,y)
@@ -144,6 +154,21 @@ def desenhar_2d (superficie, t:int, massas:list, posicoes:list)->None:
     pygame.draw.circle(
       superficie, COR_PONTO, (x,y), massa / DENSIDADE
     )
+    # else:
+    #   pygame.draw.circle(
+    #     superficie, (0, 255, 255), (x,y), massa / DENSIDADE
+    #   )
+
+    if EXIBIR_VETORES:
+      k = 50
+      p = momentos[corpo][t]
+      norma = norm(p)
+      p_norm = [pi/norma for pi in p]
+      draw_arrow(superficie,
+                pygame.Vector2(x,y),
+                pygame.Vector2(x+k*p_norm[0], y+k*p_norm[1]),
+                pygame.Color("dodgerblue"),
+                7, 14, 7)
 
 def exibir_debug (tela, texto_debug, fps:float, infos:dict, i:int)->None:
   """Para exibicao de informacoes de desenvolvimento (debug)."""
@@ -162,7 +187,7 @@ def exibir_debug (tela, texto_debug, fps:float, infos:dict, i:int)->None:
       [DEBUG_POSICAO[0], DEBUG_POSICAO[1] + i*(TAMANHO_FONTE + 2)]
     ) 
 
-def exibir_evolucao_2d (massas_rel:list, posicoes:list, infos:dict)->None:
+def exibir_evolucao_2d (massas_rel:list, posicoes:list, momentos:list, infos:dict)->None:
   """Exibicao de evolucao de trajetorias em 2d."""
   global FPS
 
@@ -207,7 +232,7 @@ def exibir_evolucao_2d (massas_rel:list, posicoes:list, infos:dict)->None:
     superficie.fill(TELA_COR_FUNDO)
     
     # Exibicao
-    desenhar_2d(superficie, i, massas_rel, posicoes)
+    desenhar_2d(superficie, i, massas_rel, posicoes, momentos)
 
     # Adaptacoes
     tela_redimensionada = pygame.transform.smoothscale(superficie, tela.get_size())

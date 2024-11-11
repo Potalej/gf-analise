@@ -13,7 +13,7 @@ Autoria:
 """
 
 __all__     = ["ler_valores_iniciais", "ler_dados_simulacao"]
-__version__ = "20240710"
+__version__ = "20241111"
 __author__  = "oap"
 
 from numpy import array
@@ -86,11 +86,11 @@ def ler_valores_iniciais (arquivo_dir : str)->dict:
   Dicionario com as informacoes do arquivo.
   """
   LINHA_CONFIGS_BASICAS = [1,9]
-  LINHA_QNTD_CORPOS     = 12
-  LINHA_CONSTANTE_G     = 13
-  LINHA_INICIO_MASSAS   = 16
-  LINHA_INICIO_POSICOES = 18
-  LINHA_INICIO_MOMENTOS = 23
+  LINHA_QNTD_CORPOS     = 23
+  LINHA_CONSTANTE_G     = 24
+  LINHA_INICIO_MASSAS   = 27
+  LINHA_INICIO_POSICOES = 29
+  LINHA_INICIO_MOMENTOS = 34
 
   with open(arquivo_dir, 'r') as arquivo:    
     # Quebra em linhas
